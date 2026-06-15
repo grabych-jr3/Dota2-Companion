@@ -31,6 +31,24 @@ class HeroModel extends HiveObject {
   @HiveField(8)
   final int moveSpeed;
 
+  @HiveField(9)
+  final List<dynamic> roles;
+
+  @HiveField(10)
+  final int baseAttackMin;
+
+  @HiveField(11)
+  final int baseAttackMax;
+
+  @HiveField(12)
+  final double baseArmor;
+
+  @HiveField(13)
+  final int attackRange;
+
+  @HiveField(14)
+  final int projectileSpeed;
+
   HeroModel({
     required this.id,
     required this.name,
@@ -41,6 +59,12 @@ class HeroModel extends HiveObject {
     required this.baseHealth,
     required this.baseMana,
     required this.moveSpeed,
+    required this.roles,
+    required this.baseAttackMin,
+    required this.baseAttackMax,
+    required this.baseArmor,
+    required this.attackRange,
+    required this.projectileSpeed,
   });
 
   factory HeroModel.fromJson(Map<String, dynamic> json) {
@@ -54,6 +78,12 @@ class HeroModel extends HiveObject {
       baseHealth: json['base_health'] ?? 200,
       baseMana: json['base_mana'] ?? 75,
       moveSpeed: json['move_speed'] ?? 300,
+      roles: json['roles'] ?? [],
+      baseAttackMin: json['base_attack_min'] ?? 0,
+      baseAttackMax: json['base_attack_max'] ?? 0,
+      baseArmor: (json['base_armor'] ?? 0).toDouble(),
+      attackRange: json['attack_range'] ?? 0,
+      projectileSpeed: json['projectile_speed'] ?? 0,
     );
   }
 

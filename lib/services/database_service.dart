@@ -16,4 +16,9 @@ class DatabaseService {
     var box = Hive.box<HeroModel>(_boxName);
     return box.values.toList();
   }
+
+  static HeroModel? getHeroById(int id) {
+    var box = Hive.box<HeroModel>(_boxName);
+    return box.get(id);
+  }
 }

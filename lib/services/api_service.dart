@@ -18,18 +18,4 @@ class ApiService {
       throw Exception('Failed to load heroes data');
     }
   }
-
-  static Future<List<Map<String, dynamic>>> fetchHeroMatchups(
-      int heroId) async {
-    final response =
-    await http.get(Uri.parse('$_baseUrl/heroes/$heroId/matchups'));
-
-    if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
-
-      return List<Map<String, dynamic>>.from(body.take(5));
-    } else {
-      throw Exception('Failed to load hero matchup statistics');
-    }
-  }
 }

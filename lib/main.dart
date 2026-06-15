@@ -11,6 +11,7 @@ void main() async {
   Hive.registerAdapter(HeroModelAdapter());
 
   await Hive.openBox<HeroModel>('heroesBox');
+  await Hive.openBox('matchupsBox');
 
   runApp(const MyApp());
 }

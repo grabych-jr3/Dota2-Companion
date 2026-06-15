@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/hero_model.dart';
 import '../services/api_service.dart';
 import '../services/database_service.dart';
+import 'hero_detail_screen.dart';
 
 class HeroListScreen extends StatefulWidget {
   const HeroListScreen({super.key});
@@ -128,9 +129,43 @@ class _HeroListScreenState extends State<HeroListScreen> {
             ),
             color: const Color(0xFF252529),
             child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Colors.grey[800],
-                child: Text(hero.localizedName[0]),
+              leading: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: Image.network(
+                  hero.fullImageUrl,
+                  width: 60,
+                  height: 35,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      width: 60,
+                      height: 35,
+                      color: const Color(0xFF252529),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 15,
+                          height: 15,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFE53935)),
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    print(error);
+
+                    return Container(
+                      width: 60,
+                      height: 35,
+                      color: Colors.grey[800],
+                      child: const Icon(
+                        Icons.broken_image,
+                        size: 20,
+                        color: Colors.grey,
+                      ),
+                    );
+                  },
+                ),
               ),
               title: Text(
                 hero.localizedName,
@@ -146,7 +181,14 @@ class _HeroListScreenState extends State<HeroListScreen> {
                 size: 16,
                 color: Colors.grey,
               ),
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HeroDetailScreen(hero: hero),
+                  ),
+                );
+              },
             ),
           );
         },

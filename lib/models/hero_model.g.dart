@@ -26,13 +26,19 @@ class HeroModelAdapter extends TypeAdapter<HeroModel> {
       baseHealth: fields[6] as int,
       baseMana: fields[7] as int,
       moveSpeed: fields[8] as int,
+      roles: (fields[9] as List).cast<dynamic>(),
+      baseAttackMin: fields[10] as int,
+      baseAttackMax: fields[11] as int,
+      baseArmor: fields[12] as double,
+      attackRange: fields[13] as int,
+      projectileSpeed: fields[14] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, HeroModel obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +56,19 @@ class HeroModelAdapter extends TypeAdapter<HeroModel> {
       ..writeByte(7)
       ..write(obj.baseMana)
       ..writeByte(8)
-      ..write(obj.moveSpeed);
+      ..write(obj.moveSpeed)
+      ..writeByte(9)
+      ..write(obj.roles)
+      ..writeByte(10)
+      ..write(obj.baseAttackMin)
+      ..writeByte(11)
+      ..write(obj.baseAttackMax)
+      ..writeByte(12)
+      ..write(obj.baseArmor)
+      ..writeByte(13)
+      ..write(obj.attackRange)
+      ..writeByte(14)
+      ..write(obj.projectileSpeed);
   }
 
   @override
