@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import '../models/hero_model.dart';
 
-class HeroDetailScreen extends StatelessWidget {
+import '../models/hero_model.dart';
+import '../models/matchup_model.dart';
+import '../services/api_service.dart';
+import '../services/database_service.dart';
+
+class HeroDetailScreen extends StatefulWidget {
   final HeroModel hero;
 
   const HeroDetailScreen({
@@ -10,44 +14,99 @@ class HeroDetailScreen extends StatelessWidget {
   });
 
   @override
+  State<HeroDetailScreen> createState() =>
+      _HeroDetailScreenState();
+}
+
+class _HeroDetailScreenState
+    extends State<HeroDetailScreen> {
+  List<MatchupModel> _matchups = [];
+  bool _isLoadingMatchups = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMatchups();
+  }
+
+  Future<void> _loadMatchups() async {
+    try {
+      final matchups =
+      await ApiService.fetchHeroMatchups(
+        widget.hero.id,
+      );
+
+      matchups.sort(
+            (a, b) => b.winRate.compareTo(a.winRate),
+      );
+
+      setState(() {
+        _matchups = matchups.take(5).toList();
+        _isLoadingMatchups = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingMatchups = false;
+      });
+    }
+  }
+
+  String _heroNameFromId(int heroId) {
+    final hero =
+    DatabaseService.getHeroById(heroId);
+
+    return hero?.localizedName ??
+        'Hero #$heroId';
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(hero.localizedName),
+        title: Text(widget.hero.localizedName),
       ),
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+          CrossAxisAlignment.start,
           children: [
             Container(
               width: double.infinity,
               height: 220,
               color: const Color(0xFF252529),
               child: Image.network(
-                hero.fullImageUrl,
+                widget.hero.fullImageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                const Icon(Icons.broken_image, size: 60),
+                errorBuilder:
+                    (context, error, stackTrace) {
+                  return const Icon(
+                    Icons.broken_image,
+                    size: 60,
+                  );
+                },
               ),
             ),
 
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding:
+              const EdgeInsets.all(16),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment:
+                CrossAxisAlignment.start,
                 children: [
                   Text(
-                    hero.localizedName,
+                    widget.hero.localizedName,
                     style: const TextStyle(
                       fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                      fontWeight:
+                      FontWeight.bold,
                     ),
                   ),
 
                   const SizedBox(height: 6),
 
                   Text(
-                    '${hero.attackType.toUpperCase()} • ${hero.primaryAttr.toUpperCase()}',
+                    '${widget.hero.attackType.toUpperCase()} • ${widget.hero.primaryAttr.toUpperCase()}',
                     style: TextStyle(
                       color: Colors.grey[400],
                       fontSize: 16,
@@ -60,26 +119,29 @@ class HeroDetailScreen extends StatelessWidget {
                     'Base Stats',
                     style: TextStyle(
                       fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontWeight:
+                      FontWeight.bold,
                     ),
                   ),
 
                   const SizedBox(height: 12),
 
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment:
+                    MainAxisAlignment
+                        .spaceBetween,
                     children: [
                       _buildStatCard(
                         '❤️ HP',
-                        '${hero.baseHealth}',
+                        '${widget.hero.baseHealth}',
                       ),
                       _buildStatCard(
                         '🔷 Mana',
-                        '${hero.baseMana}',
+                        '${widget.hero.baseMana}',
                       ),
                       _buildStatCard(
                         '⚡ Speed',
-                        '${hero.moveSpeed}',
+                        '${widget.hero.moveSpeed}',
                       ),
                     ],
                   ),
@@ -90,7 +152,8 @@ class HeroDetailScreen extends StatelessWidget {
                     'Hero Roles',
                     style: TextStyle(
                       fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontWeight:
+                      FontWeight.bold,
                     ),
                   ),
 
@@ -99,10 +162,17 @@ class HeroDetailScreen extends StatelessWidget {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: hero.roles.map((role) {
+                    children:
+                    widget.hero.roles
+                        .map((role) {
                       return Chip(
-                        label: Text(role.toString()),
-                        backgroundColor: const Color(0xFF252529),
+                        label: Text(
+                          role.toString(),
+                        ),
+                        backgroundColor:
+                        const Color(
+                          0xFF252529,
+                        ),
                       );
                     }).toList(),
                   ),
@@ -113,7 +183,8 @@ class HeroDetailScreen extends StatelessWidget {
                     'Combat Stats',
                     style: TextStyle(
                       fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontWeight:
+                      FontWeight.bold,
                     ),
                   ),
 
@@ -121,23 +192,98 @@ class HeroDetailScreen extends StatelessWidget {
 
                   _buildInfoTile(
                     'Damage',
-                    '${hero.baseAttackMin} - ${hero.baseAttackMax}',
+                    '${widget.hero.baseAttackMin} - ${widget.hero.baseAttackMax}',
                   ),
 
                   _buildInfoTile(
                     'Armor',
-                    hero.baseArmor.toStringAsFixed(1),
+                    widget.hero.baseArmor
+                        .toStringAsFixed(1),
                   ),
 
                   _buildInfoTile(
                     'Attack Range',
-                    '${hero.attackRange}',
+                    '${widget.hero.attackRange}',
                   ),
 
                   _buildInfoTile(
                     'Projectile Speed',
-                    '${hero.projectileSpeed}',
+                    '${widget.hero.projectileSpeed}',
                   ),
+
+                  const Divider(height: 32),
+
+                  const Text(
+                    'Best Matchups',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight:
+                      FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  if (_isLoadingMatchups)
+                    const Center(
+                      child:
+                      CircularProgressIndicator(),
+                    )
+                  else
+                    Column(
+                      children:
+                      _matchups.map(
+                            (matchup) {
+                          return Card(
+                            color:
+                            const Color(
+                              0xFF252529,
+                            ),
+                            child: ListTile(
+                              leading: Builder(
+                                builder: (context) {
+                                  final hero =
+                                  DatabaseService.getHeroById(matchup.heroId);
+
+                                  if (hero == null) {
+                                    return const CircleAvatar(
+                                      child: Icon(Icons.person),
+                                    );
+                                  }
+
+                                  return CircleAvatar(
+                                    backgroundImage: NetworkImage(
+                                      hero.fullImageUrl,
+                                    ),
+                                  );
+                                },
+                              ),
+                              title: Text(
+                                _heroNameFromId(
+                                  matchup
+                                      .heroId,
+                                ),
+                              ),
+                              subtitle: Text(
+                                'Games: ${matchup.gamesPlayed}',
+                              ),
+                              trailing:
+                              Text(
+                                '${matchup.winRate.toStringAsFixed(1)}%',
+                                style:
+                                const TextStyle(
+                                  fontWeight:
+                                  FontWeight
+                                      .bold,
+                                  color: Colors
+                                      .green,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ).toList(),
+                    ),
 
                   const Divider(height: 32),
 
@@ -145,7 +291,8 @@ class HeroDetailScreen extends StatelessWidget {
                     'Hero Summary',
                     style: TextStyle(
                       fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontWeight:
+                      FontWeight.bold,
                     ),
                   ),
 
@@ -153,22 +300,32 @@ class HeroDetailScreen extends StatelessWidget {
 
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF252529),
-                      borderRadius: BorderRadius.circular(12),
+                    padding:
+                    const EdgeInsets
+                        .all(16),
+                    decoration:
+                    BoxDecoration(
+                      color: const Color(
+                        0xFF252529,
+                      ),
+                      borderRadius:
+                      BorderRadius
+                          .circular(
+                        12,
+                      ),
                     ),
                     child: Text(
-                      '${hero.localizedName} is a '
-                          '${hero.attackType.toLowerCase()} hero whose primary attribute is '
-                          '${hero.primaryAttr.toUpperCase()}. '
-                          'This hero starts with ${hero.baseHealth} health, '
-                          '${hero.baseMana} mana and '
-                          '${hero.moveSpeed} movement speed. '
+                      '${widget.hero.localizedName} is a '
+                          '${widget.hero.attackType.toLowerCase()} hero whose primary attribute is '
+                          '${widget.hero.primaryAttr.toUpperCase()}. '
+                          'This hero starts with ${widget.hero.baseHealth} health, '
+                          '${widget.hero.baseMana} mana and '
+                          '${widget.hero.moveSpeed} movement speed. '
                           'Its base damage is '
-                          '${hero.baseAttackMin}-${hero.baseAttackMax} and armor is '
-                          '${hero.baseArmor.toStringAsFixed(1)}.',
-                      style: const TextStyle(
+                          '${widget.hero.baseAttackMin}-${widget.hero.baseAttackMax} and armor is '
+                          '${widget.hero.baseArmor.toStringAsFixed(1)}.',
+                      style:
+                      const TextStyle(
                         fontSize: 15,
                         height: 1.5,
                       ),
@@ -189,16 +346,20 @@ class HeroDetailScreen extends StatelessWidget {
       ) {
     return Container(
       width: 105,
-      padding: const EdgeInsets.all(12),
+      padding:
+      const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF252529),
-        borderRadius: BorderRadius.circular(8),
+        color:
+        const Color(0xFF252529),
+        borderRadius:
+        BorderRadius.circular(8),
       ),
       child: Column(
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style:
+            const TextStyle(
               fontSize: 12,
               color: Colors.grey,
             ),
@@ -206,9 +367,11 @@ class HeroDetailScreen extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             value,
-            style: const TextStyle(
+            style:
+            const TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.bold,
+              fontWeight:
+              FontWeight.bold,
             ),
           ),
         ],
@@ -221,13 +384,15 @@ class HeroDetailScreen extends StatelessWidget {
       String value,
       ) {
     return Card(
-      color: const Color(0xFF252529),
+      color:
+      const Color(0xFF252529),
       child: ListTile(
         title: Text(title),
         trailing: Text(
           value,
           style: const TextStyle(
-            fontWeight: FontWeight.bold,
+            fontWeight:
+            FontWeight.bold,
           ),
         ),
       ),
